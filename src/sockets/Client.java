@@ -38,6 +38,7 @@ public class Client {
     }
 
     public String receiveMessage() throws IOException {
+        /*
         byte messageType = dataInputStream.readByte();
 
         if(messageType == 1){
@@ -47,7 +48,7 @@ public class Client {
         }else{
             System.out.println("Unknown messagetype");
         }
-
+        */
         return dataInputStream.readUTF();
     }
 
