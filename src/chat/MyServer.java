@@ -17,6 +17,7 @@ public class MyServer {
             while (true) {
                 Thread thread = new Thread(new ClientHandler(new Client(server.acceptConnection())));
                 System.out.println("A new client was added to the chat");
+                threads.removeIf(runningThread -> !runningThread.isAlive());
                 threads.add(thread);
                 thread.start();
             }
@@ -25,6 +26,7 @@ public class MyServer {
             e.printStackTrace();
         }
     }
+
 
     private static class ClientHandler implements Runnable {
         Client client;
@@ -52,6 +54,7 @@ public class MyServer {
 
                     if(msg.equals("/leave")){
                         clients.remove(client);
+
                         for (Client c : clients){
                             c.sendMessage(username + " left the chat");
                         }

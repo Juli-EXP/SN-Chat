@@ -26,13 +26,13 @@ public class Client {
     }
 
     public void sendMessage(String msg) throws IOException {
-        dataOutputStream.writeByte(1);
+        //dataOutputStream.writeByte(1);
         dataOutputStream.writeUTF(msg);
         dataOutputStream.flush();
     }
 
     public void sendFile(String msg) throws IOException {
-        dataOutputStream.writeByte(2);
+        //dataOutputStream.writeByte(2);
         dataOutputStream.writeUTF(msg);
         dataOutputStream.flush();
     }
