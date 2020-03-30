@@ -8,8 +8,8 @@ public class MyClient {
     public static void main(String[] args) {
         try {
             Client client = new Client("localhost", 42069);
-            client.sendMessage("gay");
-            client.sendFile("gayer");
+            client.sendMessage("hund");
+            client.sendFile("hunde");
 
 
             client.close();
