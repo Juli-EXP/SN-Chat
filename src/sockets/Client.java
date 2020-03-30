@@ -1,9 +1,8 @@
 package sockets;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 
 public class Client {
     private Socket socket;
@@ -26,30 +25,36 @@ public class Client {
     }
 
     public void sendMessage(String msg) throws IOException {
-        //dataOutputStream.writeByte(1);
-        dataOutputStream.writeUTF(msg);
-        dataOutputStream.flush();
-    }
-
-    public void sendFile(String msg) throws IOException {
-        //dataOutputStream.writeByte(2);
         dataOutputStream.writeUTF(msg);
         dataOutputStream.flush();
     }
 
     public String receiveMessage() throws IOException {
-        /*
-        byte messageType = dataInputStream.readByte();
 
-        if(messageType == 1){
-            System.out.println("Message");
-        }else if(messageType == 2){
-            System.out.print("File");
-        }else{
-            System.out.println("Unknown messagetype");
-        }
-        */
         return dataInputStream.readUTF();
+    }
+
+    public void sendFile(String path) throws IOException {
+        File file = new File(path);
+        byte[] bytes = Files.readAllBytes(file.toPath());
+
+        dataOutputStream.writeUTF(file.getName());
+
+        dataOutputStream.write(bytes, 0, bytes.length);
+        dataOutputStream.flush();
+    }
+
+    public void receiveFile() throws IOException {
+        String filename;
+        int filesize;
+        byte[] bytes = new byte[1024 * 1024 * 50];    //Max size = 50 MB
+
+        filename = dataInputStream.readUTF();
+        filesize = dataInputStream.read(bytes, 0, bytes.length);
+
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(filename));
+        bufferedOutputStream.write(bytes, 0, filesize);
+        bufferedOutputStream.close();
     }
 
     public void close() throws IOException {

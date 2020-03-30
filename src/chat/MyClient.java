@@ -29,6 +29,11 @@ public class MyClient {
             e.printStackTrace();
         }
 
+        System.out.println("*****************INSTRUCTIONS*****************");
+        System.out.println("Write \"/leave\" to leave the chat");
+        System.out.println("Write \"/file\" to send a file");
+        System.out.println("You have to type in the directory of the File");
+
         Thread reader = new Thread(new ClientReader());
         reader.start();
         Thread writer = new Thread(new ClientWriter());
@@ -89,6 +94,8 @@ public class MyClient {
                 }
             }
         }
+        //leave
+        //send file
     }
 }
 

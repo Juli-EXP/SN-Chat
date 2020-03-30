@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class MyServer {
-    private static ArrayList<Client> clients = new ArrayList<>(10);
-    private static ArrayList<Thread> threads = new ArrayList<>(10);
+    private static ArrayList<Client> clients = new ArrayList<>();
 
     public static void main(String[] args) {
         try {
@@ -17,8 +16,6 @@ public class MyServer {
             while (true) {
                 Thread thread = new Thread(new ClientHandler(new Client(server.acceptConnection())));
                 System.out.println("A new client was added to the chat");
-                threads.removeIf(runningThread -> !runningThread.isAlive());
-                threads.add(thread);
                 thread.start();
             }
 
@@ -29,7 +26,8 @@ public class MyServer {
 
 
     private static class ClientHandler implements Runnable {
-        Client client;
+        private Client client;
+        private String username = "";
 
         public ClientHandler(Client client) {
             this.client = client;
@@ -38,7 +36,6 @@ public class MyServer {
 
         @Override
         public void run() {
-            String username = "";
             String msg;
 
             try {
@@ -52,17 +49,15 @@ public class MyServer {
                     msg = client.receiveMessage();
                     System.out.println("Received message: " + msg + "; from: " + username);
 
-                    if(msg.equals("/leave")){
-                        clients.remove(client);
-
-                        for (Client c : clients){
-                            c.sendMessage(username + " left the chat");
-                        }
+                    if (msg.equals("/leave")) {
+                        removeClient();
                         return;
+                    }else if(msg.equals("file")){
+                        fileHandler();
                     }
 
-                    for (Client c : clients){
-                        if(c != client){
+                    for (Client c : clients) {
+                        if (c != client) {
                             c.sendMessage(username + ": " + msg);
                         }
                     }
@@ -74,5 +69,18 @@ public class MyServer {
                 }
             }
         }
+
+        private void removeClient() throws IOException {
+            clients.remove(client);
+
+            for (Client c : clients) {
+                c.sendMessage(username + " left the chat");
+            }
+        }
+
+        private void fileHandler() throws IOException{
+            client.sendMessage("Please send your file now");
+        }
+
     }
 }
