@@ -1,8 +1,9 @@
 # Default ignored files
 /.idea
 /out
+/download
+/files
 
 /src/test.java
 
 *.iml
-*.txt

@@ -1,5 +1,7 @@
 package sockets;
 
+import com.sun.webkit.graphics.WCPathIterator;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -27,11 +29,9 @@ public class Client {
 
     public void sendMessage(String msg) throws IOException {
         dataOutputStream.writeUTF(msg);
-        dataOutputStream.flush();
     }
 
     public String receiveMessage() throws IOException {
-
         return dataInputStream.readUTF();
     }
 
@@ -39,29 +39,29 @@ public class Client {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
 
         dataOutputStream.writeUTF(Paths.get(path).getFileName().toString());
-
+        dataOutputStream.writeInt(bytes.length);
         dataOutputStream.write(bytes, 0, bytes.length);
         dataOutputStream.flush();
     }
 
-    public String receiveFile() throws IOException{
+    public String receiveFile() throws IOException {
         return receiveFile("");
     }
 
     public String receiveFile(String directory) throws IOException {
+        String filename = dataInputStream.readUTF();
+        int filesize = dataInputStream.readInt();
+        byte[] bytes = new byte[1024];
 
-        String filename;
-        int filesize;
-        byte[] bytes = new byte[1024 * 1024 * 50];    //Max size = 50 MB
+        FileOutputStream fileOutputStream = new FileOutputStream(directory + filename);
 
-        filename = dataInputStream.readUTF();
-        filesize = dataInputStream.read(bytes, 0, bytes.length);
+        int count;
+        while (filesize > 0 && (count = dataInputStream.read(bytes, 0, Math.min(bytes.length, filesize))) != -1) {
+            fileOutputStream.write(bytes, 0, count);
+            filesize -= count;
+        }
 
-
-
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(directory + filename));
-        bufferedOutputStream.write(bytes, 0, filesize);
-        bufferedOutputStream.close();
+        fileOutputStream.close();
 
         return filename;
     }

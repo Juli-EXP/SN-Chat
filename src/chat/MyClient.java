@@ -66,7 +66,7 @@ public class MyClient {
 
                     msg = client.receiveMessage();
 
-                    switch (msg){
+                    switch (msg) {
                         case "/file":
                             receiveFile();
                             break;
@@ -81,17 +81,18 @@ public class MyClient {
             }
         }
 
-        private void receiveFile() throws IOException{
+        private void receiveFile() throws IOException {
             String filename;
 
             Files.createDirectories(Paths.get("download"));
 
             if (Files.notExists(Paths.get("download"))) {
                 filename = client.receiveFile();
-            }else{
-                filename = client.receiveFile();
+            } else {
+                filename = client.receiveFile("download/");
             }
-            System.out.println("The file \"" + filename+ "\" was downloaded");
+
+            System.out.println("The file \"" + filename + "\" was downloaded");
         }
     }
 
@@ -134,17 +135,16 @@ public class MyClient {
         private void sendFile() throws IOException {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Enter the file path:");
-            String fileame = br.readLine();
+            String filename = br.readLine();
 
-            if (Files.notExists(Paths.get(fileame))) {
+            client.sendMessage("/file");
+
+            if (Files.notExists(Paths.get(filename))) {
                 System.err.println("File not found");
                 return;
             }
 
-            client.sendMessage("/file");
-            client.sendFile(fileame);
+            client.sendFile(filename);
         }
     }
 }
-
-
