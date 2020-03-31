@@ -1,9 +1,11 @@
 package sockets;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import com.sun.webkit.graphics.WCPathIterator;
+
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Client {
     private Socket socket;
@@ -26,30 +28,42 @@ public class Client {
     }
 
     public void sendMessage(String msg) throws IOException {
-        //dataOutputStream.writeByte(1);
         dataOutputStream.writeUTF(msg);
-        dataOutputStream.flush();
-    }
-
-    public void sendFile(String msg) throws IOException {
-        //dataOutputStream.writeByte(2);
-        dataOutputStream.writeUTF(msg);
-        dataOutputStream.flush();
     }
 
     public String receiveMessage() throws IOException {
-        /*
-        byte messageType = dataInputStream.readByte();
-
-        if(messageType == 1){
-            System.out.println("Message");
-        }else if(messageType == 2){
-            System.out.print("File");
-        }else{
-            System.out.println("Unknown messagetype");
-        }
-        */
         return dataInputStream.readUTF();
+    }
+
+    public void sendFile(String path) throws IOException {
+        byte[] bytes = Files.readAllBytes(Paths.get(path));
+
+        dataOutputStream.writeUTF(Paths.get(path).getFileName().toString());
+        dataOutputStream.writeInt(bytes.length);
+        dataOutputStream.write(bytes, 0, bytes.length);
+        dataOutputStream.flush();
+    }
+
+    public String receiveFile() throws IOException {
+        return receiveFile("");
+    }
+
+    public String receiveFile(String directory) throws IOException {
+        String filename = dataInputStream.readUTF();
+        int filesize = dataInputStream.readInt();
+        byte[] bytes = new byte[1024];
+
+        FileOutputStream fileOutputStream = new FileOutputStream(directory + filename);
+
+        int count;
+        while (filesize > 0 && (count = dataInputStream.read(bytes, 0, Math.min(bytes.length, filesize))) != -1) {
+            fileOutputStream.write(bytes, 0, count);
+            filesize -= count;
+        }
+
+        fileOutputStream.close();
+
+        return filename;
     }
 
     public void close() throws IOException {

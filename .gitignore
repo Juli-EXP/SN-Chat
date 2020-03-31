@@ -1,6 +1,9 @@
 # Default ignored files
 /.idea
 /out
-/src/META-INF/
-*.iml
+/download
+/files
 
+/src/test.java
+
+*.iml
