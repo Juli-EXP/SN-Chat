@@ -2,8 +2,16 @@ package chat;
 
 import sockets.*;
 
+import javax.crypto.spec.PSource;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MyServer {
     private static ArrayList<Client> clients = new ArrayList<>();
@@ -49,17 +57,26 @@ public class MyServer {
                     msg = client.receiveMessage();
                     System.out.println("Received message: " + msg + "; from: " + username);
 
-                    if (msg.equals("/leave")) {
-                        removeClient();
-                        return;
-                    }else if(msg.equals("file")){
-                        fileHandler();
-                    }
-
-                    for (Client c : clients) {
-                        if (c != client) {
-                            c.sendMessage(username + ": " + msg);
-                        }
+                    switch (msg) {
+                        case "/leave":
+                            clients.remove(client);
+                            for (Client c : clients)
+                                c.sendMessage(username + " left the chat");
+                            return;
+                        case "/file":
+                            handleFile();
+                            break;
+                        case "/hund":
+                            Files.createDirectories(Paths.get("hund"));
+                            System.out.println("hund goes brrrrr");
+                            break;
+                        default:
+                            for (Client c : clients) {
+                                if (c != client) {
+                                    c.sendMessage(username + ": " + msg);
+                                }
+                            }
+                            break;
                     }
 
                 } catch (IOException e) {
@@ -70,17 +87,34 @@ public class MyServer {
             }
         }
 
-        private void removeClient() throws IOException {
-            clients.remove(client);
+        private void handleFile() throws IOException {
+            String filename;
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+            Date date = new Date();
+
+            Files.createDirectories(Paths.get("download"));
+
+            if (Files.notExists(Paths.get("download"))) {
+                System.err.println("Couldn't create download folder");
+                client.sendMessage("An error occurred while sending the file, please try again");
+                return;
+            }
+
+            filename = client.receiveFile("download/");
+
+            Path path = Paths.get("download/" + filename);
+            Files.move(path, path.resolveSibling(username + "_" + dateFormat.format(date) + "_" + filename),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            filename = username + "_" + dateFormat.format(date) + "_" + filename;
 
             for (Client c : clients) {
-                c.sendMessage(username + " left the chat");
+                if (c != client) {
+                    c.sendMessage("/file");
+                    c.sendFile("download/" + filename);
+                }
             }
-        }
 
-        private void fileHandler() throws IOException{
-            client.sendMessage("Please send your file now");
         }
-
     }
 }

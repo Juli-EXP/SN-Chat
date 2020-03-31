@@ -3,6 +3,7 @@ package sockets;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Client {
     private Socket socket;
@@ -35,16 +36,20 @@ public class Client {
     }
 
     public void sendFile(String path) throws IOException {
-        File file = new File(path);
-        byte[] bytes = Files.readAllBytes(file.toPath());
+        byte[] bytes = Files.readAllBytes(Paths.get(path));
 
-        dataOutputStream.writeUTF(file.getName());
+        dataOutputStream.writeUTF(Paths.get(path).getFileName().toString());
 
         dataOutputStream.write(bytes, 0, bytes.length);
         dataOutputStream.flush();
     }
 
-    public void receiveFile() throws IOException {
+    public String receiveFile() throws IOException{
+        return receiveFile("");
+    }
+
+    public String receiveFile(String directory) throws IOException {
+
         String filename;
         int filesize;
         byte[] bytes = new byte[1024 * 1024 * 50];    //Max size = 50 MB
@@ -52,9 +57,13 @@ public class Client {
         filename = dataInputStream.readUTF();
         filesize = dataInputStream.read(bytes, 0, bytes.length);
 
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(filename));
+
+
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(directory + filename));
         bufferedOutputStream.write(bytes, 0, filesize);
         bufferedOutputStream.close();
+
+        return filename;
     }
 
     public void close() throws IOException {
