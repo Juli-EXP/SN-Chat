@@ -65,10 +65,6 @@ public class MyServer {
                         case "/file":
                             handleFile();
                             break;
-                        case "/hund":
-                            Files.createDirectories(Paths.get("hund"));
-                            System.out.println("hund goes brrrrr");
-                            break;
                         default:
                             for (Client c : clients) {
                                 if (c != client) {
