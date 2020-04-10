@@ -5,6 +5,7 @@ import sockets.Client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -75,6 +76,8 @@ public class MyClient {
                             break;
                     }
 
+                } catch (SocketException e) {
+                    System.err.println("Socket was closed");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
