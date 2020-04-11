@@ -1,6 +1,6 @@
-package java.chat;
+package chat;
 
-import java.sockets.Client;
+import sockets.Client;
 
 import java.io.BufferedReader;
 import java.io.IOException;

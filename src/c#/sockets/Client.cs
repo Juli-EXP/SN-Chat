@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -28,7 +29,7 @@ namespace SN_Chat {
         public void SendMessage(String msg) {
             byte[] byteCount = new byte[2];
             int length = Encoding.UTF8.GetByteCount(msg);
-            
+
             byteCount[0] = (byte)(length >> 8);
             byteCount[1] = (byte)(length >> 0);
 
@@ -40,7 +41,7 @@ namespace SN_Chat {
             socket.Send(bytes);
         }
 
-        public String ReceiveMessage(){
+        public String ReceiveMessage() {
             byte[] byteCount = new byte[2];
             int lenght = 0;
 
@@ -54,9 +55,44 @@ namespace SN_Chat {
             socket.Receive(bytes);
 
             string msg = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-          
+
             return msg;
         }
+
+        public void SendFile(String path) {
+            byte[] bytes = File.ReadAllBytes(path);
+            byte[] length = new byte[4];
+
+            SendMessage(Path.GetFileName(path));
+
+            length[0] = (byte)(bytes.Length >> 24);
+            length[1] = (byte)(bytes.Length >> 16);
+            length[2] = (byte)(bytes.Length >> 8);
+            length[3] = (byte)(bytes.Length >> 0);
+            socket.Send(length, length.Length, SocketFlags.None);
+
+            socket.Send(bytes, bytes.Length, SocketFlags.None);
+
+        }
+
+        public String ReceiveFile(String path) {
+            String filename = ReceiveMessage();
+            byte[] length = new byte[4];
+            int filesize;
+
+            socket.Receive(length, length.Length, SocketFlags.None);
+            filesize = (length[0] << 24) + (length[1] << 16) + (length[2] << 8) + (length[3] << 0);
+
+            byte[] bytes = new byte[filesize];
+
+            socket.Receive(bytes, filesize, SocketFlags.None);
+
+            File.WriteAllBytes(path, bytes);
+
+            return filename;
+        }
+
+        //create methods for java dataoutputstream
 
         public void Stop() {
             socket.Close();

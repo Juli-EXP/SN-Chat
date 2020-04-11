@@ -1,6 +1,6 @@
-package java.chat;
+package chat;
 
-import java.sockets.*;
+import sockets.*;
 
 import java.io.IOException;
 import java.nio.file.Files;

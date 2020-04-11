@@ -2,7 +2,7 @@
 using System.Threading;
 
 namespace SN_Chat {
-    class Program {
+    class MyClient {
         private static Client client;
         private static bool stop = false;
 
@@ -53,7 +53,7 @@ namespace SN_Chat {
 
                 switch (msg) {
                     case "/file":
-                        //ReceiveFile()
+                        client.ReceiveFile("");
                         break;
                     default:
                         Console.WriteLine(msg);
