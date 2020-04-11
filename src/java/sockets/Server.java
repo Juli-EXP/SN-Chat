@@ -1,4 +1,4 @@
-package sockets;
+package java.sockets;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -11,7 +11,7 @@ import java.net.Socket;
  */
 
 public class Server {
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
 
     /**
      * Creates a server socket.

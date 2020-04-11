@@ -1,4 +1,4 @@
-package sockets;
+package java.sockets;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,9 +13,9 @@ import java.nio.file.Paths;
  */
 
 public class Client {
-    private Socket socket;
-    private DataInputStream dataInputStream;
-    private DataOutputStream dataOutputStream;
+    private final Socket socket;
+    private final DataInputStream dataInputStream;
+    private final DataOutputStream dataOutputStream;
 
     /**
      * Creates a socket and initializes the DataInputStream as well as
@@ -51,7 +51,7 @@ public class Client {
     }
 
     /**
-     * Sends a String to the Server using UTF.
+     * Sends a String to the Server using modified UTF-8.
      *
      * @param msg the string you want to send.
      * @throws IOException if an I/O error occurs.
@@ -61,7 +61,7 @@ public class Client {
     }
 
     /**
-     * Receives a String from the Server using UTF.
+     * Receives a String from the Server using modified UTF-8.
      *
      * @return a Unicode string.
      * @throws IOException if the stream has been closed.
@@ -134,5 +134,6 @@ public class Client {
     public void close() throws IOException {
         dataInputStream.close();
         dataOutputStream.close();
+        socket.close();
     }
 }

@@ -1,6 +1,6 @@
-package chat;
+package java.chat;
 
-import sockets.Client;
+import java.sockets.Client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 
 public class MyClient {
     private static Client client;
-    private static boolean stop = false;
 
     public static void main(String[] args) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -19,7 +18,7 @@ public class MyClient {
         String username;
 
         try {
-            System.out.println("Enter the ip address of the Server");
+            System.out.println("Enter the ip address of the Server: ");
             ip = br.readLine();
 
             client = new Client(ip, 42069);
@@ -42,7 +41,6 @@ public class MyClient {
 
     private static void stopThread() throws IOException {
         client.close();
-        stop = true;
     }
 
     private static void showInstructions() {
@@ -61,10 +59,6 @@ public class MyClient {
             String msg;
             while (true) {
                 try {
-                    if (stop) {
-                        return;
-                    }
-
                     msg = client.receiveMessage();
 
                     switch (msg) {
@@ -78,6 +72,7 @@ public class MyClient {
 
                 } catch (SocketException e) {
                     System.err.println("Socket was closed");
+                    return;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

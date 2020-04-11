@@ -1,6 +1,6 @@
-package chat;
+package java.chat;
 
-import sockets.*;
+import java.sockets.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class MyServer {
-    private static ArrayList<Client> clients = new ArrayList<>();
+    private static final ArrayList<Client> clients = new ArrayList<>();
 
     public static void main(String[] args) {
         try {
@@ -33,7 +33,7 @@ public class MyServer {
 
 
     private static class ClientHandler implements Runnable {
-        private Client client;
+        private final Client client;
         private String username = "";
 
         public ClientHandler(Client client) {

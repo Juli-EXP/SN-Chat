@@ -1,9 +1,16 @@
-# Default ignored files
+#IntelliJ
 /.idea
 /out
+*.iml
+
+#Visual studio
+/.vs
+/bin
+/obj
+
+#Project files
 /download
 /files
+/src/java/test.java
 
-/src/test.java
 
-*.iml
