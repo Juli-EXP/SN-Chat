@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 
 namespace SN_Chat {
@@ -10,12 +11,12 @@ namespace SN_Chat {
             String ipAddress;
             String username;
 
-            Console.WriteLine("Enter the ip address of the Server");
+            Console.WriteLine("Enter the ip address of the Server:");
             ipAddress = Console.ReadLine();
 
-            client = new Client(ipAddress, 42069);
+            client = new Client(ipAddress, 42069, MessageType.MUTF8);
 
-            Console.WriteLine("Enter your Username: ");
+            Console.WriteLine("Enter your Username:");
             username = Console.ReadLine();
 
             client.SendMessage(username);
@@ -26,7 +27,7 @@ namespace SN_Chat {
             Thread writer = new Thread(Writer);
             reader.Start();
             writer.Start();
-            
+
 
         }
 
@@ -53,7 +54,7 @@ namespace SN_Chat {
 
                 switch (msg) {
                     case "/file":
-                        client.ReceiveFile("");
+                        ReceiveFile();
                         break;
                     default:
                         Console.WriteLine(msg);
@@ -76,7 +77,7 @@ namespace SN_Chat {
                         StopThread();
                         return;
                     case "/file":
-                        //SendFile();
+                        SendFile();
                         break;
                     case "/instruction":
                         ShowInstructions();
@@ -86,6 +87,33 @@ namespace SN_Chat {
                         break;
                 }
             }
+        }
+
+        private static void ReceiveFile() {
+            String filename;
+
+            Directory.CreateDirectory("download");
+
+            if (Directory.Exists("download")) {
+                filename = client.ReceiveFile("download");
+            } else {
+                filename = client.ReceiveFile("");
+            }
+
+            Console.WriteLine("The file \"{0}\" was downloaded");
+        }
+
+        private static void SendFile() {
+            Console.WriteLine("Enter the file path:");
+            String filename = Console.ReadLine();
+
+            if (!File.Exists(filename)) {
+                Console.WriteLine("File not found");
+                return;
+            }
+            client.SendMessage("/file");
+
+            client.SendFile(filename);
         }
     }
 }

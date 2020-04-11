@@ -1,7 +1,6 @@
 #IntelliJ
 /.idea
 /out
-*.iml
 
 #Visual studio
 /.vs

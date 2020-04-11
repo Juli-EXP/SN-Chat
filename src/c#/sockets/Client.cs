@@ -7,23 +7,15 @@ using System.Text;
 namespace SN_Chat {
     class Client {
         private Socket socket;
-        public Client(String ipAddress, int port) {
+        private MessageType msgType;
+        public Client(String ipAddress, int port, MessageType msgType) {
             IPHostEntry ipHostInfo = Dns.GetHostEntry(ipAddress);
             IPAddress address = ipHostInfo.AddressList[0];
             IPEndPoint ipe = new IPEndPoint(address, port);
 
-            try {
-                socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect(ipe);
-
-            } catch (ArgumentNullException ane) {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
-            } catch (SocketException se) {
-                Console.WriteLine("SocketException : {0}", se.ToString());
-            } catch (Exception e) {
-                Console.WriteLine("Unexpected exception : {0}", e.ToString());
-            }
-
+            socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect(ipe);
+            this.msgType = msgType;
         }
 
         public void SendMessage(String msg) {
@@ -87,7 +79,7 @@ namespace SN_Chat {
 
             socket.Receive(bytes, filesize, SocketFlags.None);
 
-            File.WriteAllBytes(path, bytes);
+            File.WriteAllBytes(path + filename, bytes);
 
             return filename;
         }

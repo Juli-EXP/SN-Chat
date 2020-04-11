@@ -18,12 +18,12 @@ public class MyClient {
         String username;
 
         try {
-            System.out.println("Enter the ip address of the Server: ");
+            System.out.println("Enter the ip address of the Server:");
             ip = br.readLine();
 
             client = new Client(ip, 42069);
 
-            System.out.println("Enter your Username: ");
+            System.out.println("Enter your Username:");
             username = br.readLine();
             client.sendMessage(username);
 
@@ -135,12 +135,12 @@ public class MyClient {
             System.out.println("Enter the file path:");
             String filename = br.readLine();
 
-            client.sendMessage("/file");
-
             if (Files.notExists(Paths.get(filename))) {
                 System.err.println("File not found");
                 return;
             }
+
+            client.sendMessage("/file");
 
             client.sendFile(filename);
         }
