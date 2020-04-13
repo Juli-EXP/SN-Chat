@@ -4,18 +4,18 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SN_Chat {
-    class Client {
-        private Socket socket;
-        private MessageType msgType;
-        public Client(String ipAddress, int port, MessageType msgType) {
+namespace SN_Chat.sockets {
+    internal class Client {
+        private readonly Socket _socket;
+        private readonly MessageType _msgType;
+        public Client(string ipAddress, int port, MessageType msgType) {
             IPHostEntry ipHostInfo = Dns.GetHostEntry(ipAddress);
             IPAddress address = ipHostInfo.AddressList[0];
             IPEndPoint ipe = new IPEndPoint(address, port);
 
-            socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect(ipe);
-            this.msgType = msgType;
+            _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _socket.Connect(ipe);
+            this._msgType = msgType;
         }
 
         public void SendMessage(String msg) {
@@ -23,28 +23,28 @@ namespace SN_Chat {
             int length = Encoding.UTF8.GetByteCount(msg);
 
             byteCount[0] = (byte)(length >> 8);
-            byteCount[1] = (byte)(length >> 0);
+            byteCount[1] = (byte)(length);
 
             byte[] bytes = new byte[length + 2];
 
             byteCount.CopyTo(bytes, 0);
             Encoding.UTF8.GetBytes(msg).CopyTo(bytes, byteCount.Length);
 
-            socket.Send(bytes);
+            _socket.Send(bytes);
         }
 
-        public String ReceiveMessage() {
+        public string ReceiveMessage() {
             byte[] byteCount = new byte[2];
-            int lenght = 0;
+            int length = 0;
 
-            socket.Receive(byteCount);
-            for (int i = 0; i < byteCount.Length; ++i) {
-                lenght = lenght << 8;
-                lenght += byteCount[i];
+            _socket.Receive(byteCount);
+            foreach (var b in byteCount) {
+                length = length << 8;
+                length += b;
             }
 
-            byte[] bytes = new byte[lenght];
-            socket.Receive(bytes);
+            byte[] bytes = new byte[length];
+            _socket.Receive(bytes);
 
             string msg = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
 
@@ -60,24 +60,23 @@ namespace SN_Chat {
             length[0] = (byte)(bytes.Length >> 24);
             length[1] = (byte)(bytes.Length >> 16);
             length[2] = (byte)(bytes.Length >> 8);
-            length[3] = (byte)(bytes.Length >> 0);
-            socket.Send(length, length.Length, SocketFlags.None);
+            length[3] = (byte)(bytes.Length);
+            _socket.Send(length, length.Length, SocketFlags.None);
 
-            socket.Send(bytes, bytes.Length, SocketFlags.None);
+            _socket.Send(bytes, bytes.Length, SocketFlags.None);
 
         }
 
-        public String ReceiveFile(String path) {
-            String filename = ReceiveMessage();
+        public string ReceiveFile(string path) {
+            string filename = ReceiveMessage();
             byte[] length = new byte[4];
-            int filesize;
 
-            socket.Receive(length, length.Length, SocketFlags.None);
-            filesize = (length[0] << 24) + (length[1] << 16) + (length[2] << 8) + (length[3] << 0);
+            _socket.Receive(length, length.Length, SocketFlags.None);
+            int fileSize = (length[0] << 24) + (length[1] << 16) + (length[2] << 8) + (length[3]);
 
-            byte[] bytes = new byte[filesize];
+            byte[] bytes = new byte[fileSize];
 
-            socket.Receive(bytes, filesize, SocketFlags.None);
+            _socket.Receive(bytes, fileSize, SocketFlags.None);
 
             File.WriteAllBytes(path + filename, bytes);
 
@@ -87,7 +86,7 @@ namespace SN_Chat {
         //create methods for java dataoutputstream
 
         public void Stop() {
-            socket.Close();
+            _socket.Close();
         }
 
 
