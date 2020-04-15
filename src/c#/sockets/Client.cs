@@ -1,94 +1,79 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 
 namespace SN_Chat.sockets {
     internal class Client {
         private readonly Socket _socket;
-        private readonly MessageType _msgType;
-        public Client(string ipAddress, int port, MessageType msgType) {
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(ipAddress);
-            IPAddress address = ipHostInfo.AddressList[0];
-            IPEndPoint ipe = new IPEndPoint(address, port);
+
+        public Client(string ipAddress, int port) {
+            var ipHostInfo = Dns.GetHostEntry(ipAddress);
+            var address = ipHostInfo.AddressList[0];
+            var ipe = new IPEndPoint(address, port);
 
             _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             _socket.Connect(ipe);
-            this._msgType = msgType;
         }
 
-        public void SendMessage(String msg) {
-            byte[] byteCount = new byte[2];
-            int length = Encoding.UTF8.GetByteCount(msg);
+        public void SendMessage(string msg) {
+            var length = Encoding.UTF8.GetByteCount(msg);
+            var byteLength = new byte[2];
+            var bytes = new byte[length + byteLength.Length];
 
-            byteCount[0] = (byte)(length >> 8);
-            byteCount[1] = (byte)(length);
+            byteLength[0] = (byte) (length >> 8);
+            byteLength[1] = (byte) length;
 
-            byte[] bytes = new byte[length + 2];
-
-            byteCount.CopyTo(bytes, 0);
-            Encoding.UTF8.GetBytes(msg).CopyTo(bytes, byteCount.Length);
+            byteLength.CopyTo(bytes, 0);
+            Encoding.UTF8.GetBytes(msg).CopyTo(bytes, byteLength.Length);
 
             _socket.Send(bytes);
         }
 
         public string ReceiveMessage() {
-            byte[] byteCount = new byte[2];
-            int length = 0;
+            var byteLength = new byte[2];
 
-            _socket.Receive(byteCount);
-            foreach (var b in byteCount) {
-                length = length << 8;
-                length += b;
-            }
+            _socket.Receive(byteLength);
 
-            byte[] bytes = new byte[length];
+            var length = (byteLength[0] << 8) + byteLength[1];
+            var bytes = new byte[length];
+
             _socket.Receive(bytes);
 
-            string msg = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-
-            return msg;
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
-        public void SendFile(String path) {
-            byte[] bytes = File.ReadAllBytes(path);
-            byte[] length = new byte[4];
-
+        public void SendFile(string path) {
+            var bytes = File.ReadAllBytes(path);
             SendMessage(Path.GetFileName(path));
 
-            length[0] = (byte)(bytes.Length >> 24);
-            length[1] = (byte)(bytes.Length >> 16);
-            length[2] = (byte)(bytes.Length >> 8);
-            length[3] = (byte)(bytes.Length);
-            _socket.Send(length, length.Length, SocketFlags.None);
+            var byteLength = Converter.IntToByteArray(bytes.Length);
+            _socket.Send(byteLength, byteLength.Length, SocketFlags.None);
 
             _socket.Send(bytes, bytes.Length, SocketFlags.None);
-
         }
 
         public string ReceiveFile(string path) {
-            string filename = ReceiveMessage();
-            byte[] length = new byte[4];
+            var filename = ReceiveMessage();
 
-            _socket.Receive(length, length.Length, SocketFlags.None);
-            int fileSize = (length[0] << 24) + (length[1] << 16) + (length[2] << 8) + (length[3]);
+            var byteLength = new byte[4];
+            _socket.Receive(byteLength, byteLength.Length, SocketFlags.None);
+            var length = Converter.ByteArrayToInt(byteLength);
 
-            byte[] bytes = new byte[fileSize];
+            var bytes = new byte[length];
 
-            _socket.Receive(bytes, fileSize, SocketFlags.None);
+            _socket.Receive(bytes, length, SocketFlags.None);
 
             File.WriteAllBytes(path + filename, bytes);
 
             return filename;
         }
 
-        //create methods for java dataoutputstream
-
         public void Stop() {
             _socket.Close();
         }
-
-
     }
 }
