@@ -2,21 +2,20 @@ package chat;
 
 import sockets.Client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.*;
 import java.net.ConnectException;
 import java.net.SocketException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class MyClient {
     private static Client client;
-    private static final ArrayList<String> clients = new ArrayList<>();
+    private static ArrayList<String> clients;
 
     public static void main(String[] args) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        clients = fileToArrayList("config");
         boolean exit = true;
         String option;
 
@@ -28,21 +27,30 @@ public class MyClient {
 
                 switch (new Integer(option)) {
                     case 1:
-                        selectServer();
+                        startChat();
+                        br.readLine();
                         break;
                     case 2:
-                        addServer();
+                        showServers();
+                        br.readLine();
                         break;
                     case 3:
-                        removeServer();
+                        addServer();
+                        br.readLine();
                         break;
                     case 4:
+                        removeServer();
+                        br.readLine();
+                        break;
+                    case 5:
                         exit = false;
                         break;
                     default:
                         System.err.println("Wrong input");
+                        br.readLine();
                         break;
                 }
+
                 clearConsole();
 
             } catch (IOException e) {
@@ -55,48 +63,33 @@ public class MyClient {
         System.out.println("Goodbye");
     }
 
-    private static void selectServer() {
-        showServers();
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int select = 0;
-
-        System.out.println("Selcet a Server:");
-
-        try {
-            select = new Integer(br.readLine()) - 1;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
-            System.err.println("Wrong input");
-            return;
-        }
+    private static void startChat() {
+        int select = selectServer();
 
         if (clients.isEmpty()) {
             System.out.println("Please add a Server");
-        } else if (select < clients.size() && select >= 0) {
-            String[] serverInfo = clients.get(select).split(",");
-
-            startChat(serverInfo[0], new Integer(serverInfo[1]));
-        } else {
+            return;
+        } else if (select >= clients.size() || select < 0) {
             System.out.println("Wrong input");
+            return;
         }
-    }
 
-    private static void startChat(String ip, int port) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String[] serverInfo = clients.get(select).split(",");
         String username;
 
         try {
-            client = new Client(ip, port);
+            client = new Client(serverInfo[0], new Integer(serverInfo[1]));
 
             System.out.println("Enter your username:");
             username = br.readLine();
             client.sendMessage(username);
         } catch (ConnectException e) {
             System.err.println("Could not connect to the server");
+            return;
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
 
         showInstructions();
@@ -117,11 +110,8 @@ public class MyClient {
     private static void addServer() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String serverInfo;
-        String ip = "";
-        int port = 0;
-
-
-        //TODO add file to save the server
+        String ip;
+        int port;
 
         try {
             System.out.println("Enter the ip address of the Server:");
@@ -131,6 +121,7 @@ public class MyClient {
             port = new Integer(br.readLine());
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         } catch (NumberFormatException e) {
             System.err.println("Wrong input");
             return;
@@ -143,14 +134,33 @@ public class MyClient {
         } else {
             System.out.println("Server was added");
             clients.add(serverInfo);
+            arrayListToFile(clients);
         }
     }
 
     private static void removeServer() {
+        int select = selectServer();
+
+        if (clients.isEmpty()) {
+            System.out.println("Please add a Server");
+        } else if (select < clients.size() && select >= 0) {
+            System.out.println("Server was removed");
+            clients.remove(select);
+            arrayListToFile(clients);
+        } else {
+            System.out.println("Wrong input");
+        }
+    }
+
+    private static int selectServer() {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int select;
+
         showServers();
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int select = 0;
+        if (clients.isEmpty()){
+            return -1;
+        }
 
         System.out.println("Selcet a Server:");
 
@@ -158,24 +168,17 @@ public class MyClient {
             select = new Integer(br.readLine()) - 1;
         } catch (IOException e) {
             e.printStackTrace();
+            return -1;
         } catch (NumberFormatException e) {
             System.err.println("Wrong input");
-            return;
+            return -1;
         }
 
-        if (clients.isEmpty()) {
-            System.out.println("Please add a Server");
-        } else if (select < clients.size() && select >= 0) {
-            System.out.println("Server was removed");
-            clients.remove(select);
-        } else {
-            System.out.println("Wrong input");
-        }
-
+        return select;
     }
 
-    private static void showServers(){
-        if(clients.isEmpty()){
+    private static void showServers() {
+        if (clients.isEmpty()) {
             System.out.println("You have no saved servers");
             return;
         }
@@ -206,13 +209,49 @@ public class MyClient {
         client.close();
     }
 
-    private static String arrayListToCsv(ArrayList<Object> arrayList){
+    private static void arrayListToFile(ArrayList<String> arrayList) {
+        String filename = "config";
 
-        return "";
+        try {
+            if(Files.notExists(Paths.get(filename))){
+                Files.createFile(Paths.get(filename));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try(BufferedWriter bw =
+                    Files.newBufferedWriter(Paths.get(filename), StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)){
+
+            for (String s : arrayList) {
+                bw.write(s);
+                bw.newLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private static ArrayList<Object> CsvToArrayList(String path){
-        ArrayList<Object> arrayList= new ArrayList<>();
+    private static ArrayList<String> fileToArrayList(String path) {
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        if(Files.notExists(Paths.get(path))){
+            return arrayList;
+        }
+
+        try (BufferedReader br =
+                     Files.newBufferedReader(Paths.get(path), StandardCharsets.UTF_8)){
+
+            String s;
+            while((s = br.readLine()) != null){
+                arrayList.add(s);
+            }
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
 
         return arrayList;
     }
@@ -220,9 +259,10 @@ public class MyClient {
     private static void showOptions() {
         System.out.println("*****************Options*****************");
         System.out.println("(1) Start chatting");
-        System.out.println("(2) Add Server");
-        System.out.println("(3) Remove Server");
-        System.out.println("(4) Exit");
+        System.out.println("(2) Show servers");
+        System.out.println("(3) Add server");
+        System.out.println("(4) Remove server");
+        System.out.println("(5) Exit");
         System.out.println("*****************************************");
     }
 
