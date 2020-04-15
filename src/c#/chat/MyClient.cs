@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using SN_Chat.sockets;
 
 namespace SN_Chat.chat {
-    internal class MyClient {
+    internal static class MyClient {
         private static Client _client;
-        private static bool _stop;
 
         private static void Main() {
             Console.WriteLine("Enter the ip address of the Server:");
@@ -25,6 +25,8 @@ namespace SN_Chat.chat {
             var writer = new Thread(Writer);
             reader.Start();
             writer.Start();
+            reader.Join();
+            writer.Join();
         }
 
         private static void ShowInstructions() {
@@ -36,16 +38,21 @@ namespace SN_Chat.chat {
         }
 
         private static void StopThread() {
-            _stop = true;
             _client.Stop();
         }
 
         private static void Reader() {
             while (true) {
-                var msg = _client.ReceiveMessage();
-
-                if (_stop)
+                string msg;
+                
+                try {
+                    msg = _client.ReceiveMessage();
+                }
+                catch (SocketException) {
+                    Console.Error.WriteLine("Socket was closed");
                     return;
+                }
+
 
                 switch (msg) {
                     case "/file":

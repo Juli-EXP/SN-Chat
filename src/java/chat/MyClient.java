@@ -57,6 +57,7 @@ public class MyClient {
                 e.printStackTrace();
             } catch (NumberFormatException e) {
                 System.err.println("Wrong input");
+                clearConsole();
             }
         }
 
@@ -67,10 +68,12 @@ public class MyClient {
         int select = selectServer();
 
         if (clients.isEmpty()) {
-            System.out.println("Please add a Server");
+            System.out.println("Please add a server");
             return;
-        } else if (select >= clients.size() || select < 0) {
-            System.out.println("Wrong input");
+        }
+
+        if (select >= clients.size() || select < 0) {
+            System.err.println("Wrong input");
             return;
         }
 
@@ -148,7 +151,7 @@ public class MyClient {
             clients.remove(select);
             arrayListToFile(clients);
         } else {
-            System.out.println("Wrong input");
+            System.err.println("Wrong input");
         }
     }
 
