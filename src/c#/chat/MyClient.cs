@@ -3,19 +3,16 @@ using System.IO;
 using System.Threading;
 using SN_Chat.sockets;
 
-namespace SN_Chat.chat
-{
-    internal class MyClient
-    {
+namespace SN_Chat.chat {
+    internal class MyClient {
         private static Client _client;
         private static bool _stop;
 
-        private static void Main()
-        {
+        private static void Main() {
             Console.WriteLine("Enter the ip address of the Server:");
             var ipAddress = Console.ReadLine();
 
-            _client = new Client(ipAddress, 42069, MessageType.MUtf8);
+            _client = new Client(ipAddress, 42069);
 
             Console.WriteLine("Enter your Username:");
             var username = Console.ReadLine();
@@ -30,8 +27,7 @@ namespace SN_Chat.chat
             writer.Start();
         }
 
-        private static void ShowInstructions()
-        {
+        private static void ShowInstructions() {
             Console.WriteLine("*****************INSTRUCTIONS*****************");
             Console.WriteLine("Write \"/leave\" to leave the chat");
             Console.WriteLine("Write \"/file\" to send a file");
@@ -39,23 +35,19 @@ namespace SN_Chat.chat
             Console.WriteLine("**********************************************");
         }
 
-        private static void StopThread()
-        {
+        private static void StopThread() {
             _stop = true;
             _client.Stop();
         }
 
-        private static void Reader()
-        {
-            while (true)
-            {
+        private static void Reader() {
+            while (true) {
                 var msg = _client.ReceiveMessage();
 
                 if (_stop)
                     return;
 
-                switch (msg)
-                {
+                switch (msg) {
                     case "/file":
                         ReceiveFile();
                         break;
@@ -66,16 +58,13 @@ namespace SN_Chat.chat
             }
         }
 
-        private static void Writer()
-        {
+        private static void Writer() {
             Console.WriteLine("You can now write messages to the server");
 
-            while (true)
-            {
+            while (true) {
                 var msg = Console.ReadLine();
 
-                switch (msg)
-                {
+                switch (msg) {
                     case "/leave":
                         Console.WriteLine("Stopping...");
                         StopThread();
@@ -93,22 +82,11 @@ namespace SN_Chat.chat
             }
         }
 
-        private static void ReceiveFile()
-        {
-            Directory.CreateDirectory("download");
-
-            var filename = _client.ReceiveFile(Directory.Exists("download") ? "download" : "");
-
-            Console.WriteLine("The file \"{0}\" was downloaded", filename);
-        }
-
-        private static void SendFile()
-        {
+        private static void SendFile() {
             Console.WriteLine("Enter the file path:");
             var filename = Console.ReadLine();
 
-            if (!File.Exists(filename))
-            {
+            if (!File.Exists(filename)) {
                 Console.WriteLine("File not found");
                 return;
             }
@@ -116,6 +94,14 @@ namespace SN_Chat.chat
             _client.SendMessage("/file");
 
             _client.SendFile(filename);
+        }
+
+        private static void ReceiveFile() {
+            Directory.CreateDirectory("download");
+
+            var filename = _client.ReceiveFile(Directory.Exists("download") ? "download/" : "");
+
+            Console.WriteLine("The file \"{0}\" was downloaded", filename);
         }
     }
 }

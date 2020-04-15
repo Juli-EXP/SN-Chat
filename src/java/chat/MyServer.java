@@ -3,6 +3,7 @@ package chat;
 import sockets.*;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +48,9 @@ public class MyServer {
 
             try {
                 username = client.receiveMessage();
-            } catch (IOException e) {
+            } catch (SocketException e){
+                System.err.println("The connection to the client was lost");
+            }catch (IOException e) {
                 e.printStackTrace();
             }
 
@@ -74,8 +77,12 @@ public class MyServer {
                             break;
                     }
 
-                } catch (IOException e) {
-                    System.out.println("The connection to the client was lost");
+                } catch (SocketException e) {
+                    System.err.println("The connection to the client was lost");
+                    clients.remove(client);
+                    return;
+                }catch (IOException e){
+                    e.printStackTrace();
                     clients.remove(client);
                     return;
                 }

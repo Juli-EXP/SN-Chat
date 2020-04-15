@@ -6,4 +6,8 @@
     <RootNamespace>SN_Chat</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="src\c#\sockets\MessageType.cs" />
+  </ItemGroup>
+
 </Project>

@@ -51,6 +51,26 @@ public class Client {
     }
 
     /**
+     *
+     * @return
+     */
+    public String getIpAddress(){
+        if(socket.getInetAddress() == null){
+            return "";
+        }else{
+            return socket.getInetAddress().toString();
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getPort(){
+        return socket.getPort();
+    }
+
+    /**
      * Sends a String to the Server using modified UTF-8.
      *
      * @param msg the string you want to send.
